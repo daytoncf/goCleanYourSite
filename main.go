@@ -24,7 +24,6 @@ func main() {
 	for classname := range iter.C {
 		fmt.Println(classname)
 	}
-
 }
 
 // Some HTML elements had multiple classes, and their class values would be appended to the list as one class
@@ -45,6 +44,38 @@ func separateAllClassNames(classList []string) []string {
 	return cleanList
 }
 
+func cleanCSSFile(path string) {
+
+	// Read file
+	file, err := os.Open(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+	// Do more stuff below
+
+}
+
+func cleanAllCSSFiles(path string) {
+	f, err := os.Open(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	files, err := f.Readdirnames(0)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	for _, file := range files {
+		if strings.HasSuffix(file, ".css") {
+			// Do stuff here
+		}
+	}
+}
+
 // Function that will read a directory for html files
 func GetClassesHTMLFiles(path string) []string {
 	f, err := os.Open(path)
@@ -62,7 +93,7 @@ func GetClassesHTMLFiles(path string) []string {
 	classes := make([]string, 0)
 
 	for _, file := range files {
-		if strings.Contains(file, ".html") {
+		if strings.HasSuffix(file, ".html") {
 			fullFilename := path + file
 			classes = append(classes, GetClassesFromHTMLFile(fullFilename)...)
 		}

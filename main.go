@@ -64,8 +64,10 @@ func GetClassesHTMLFiles(path string) []string {
 	classes := make([]string, 0)
 
 	for _, file := range files {
-		fullFilename := path + file
-		classes = append(classes, GetClassesFromHTMLFile(fullFilename)...)
+		if strings.Contains(file, ".html") {
+			fullFilename := path + file
+			classes = append(classes, GetClassesFromHTMLFile(fullFilename)...)
+		}
 	}
 
 	return classes

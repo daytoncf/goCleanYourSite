@@ -26,7 +26,7 @@ func GetClassesHTMLFiles(path string) []string {
 	}
 
 	files, err := f.Readdirnames(0)
-	// f.Close()
+	f.Close()
 	if err != nil {
 		fmt.Println("ERR2")
 		return []string{}

@@ -1,0 +1,4 @@
+/content
+*.txt
+*.exe
+.DS_Store

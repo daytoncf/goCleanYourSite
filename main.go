@@ -1,19 +1,48 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
+	mapset "github.com/deckarep/golang-set/v2"
 	"golang.org/x/net/html"
 )
 
 func main() {
 
-	// val := GetClassesFromHTMLFile("/Users/cvad.itservices/dev/cleanss/content/emergency-index.html")
+	dir := flag.String("directory", "./content/", "Path to html files")
 
-	fmt.Print(GetClassesHTMLFiles("/Users/cvad.itservices/dev/cleanss/content/"))
+	classList := GetClassesHTMLFiles(*dir)
+	cleanedList := separateAllClassNames(classList)
+	classSet := mapset.NewSet(cleanedList...)
 
+	iter := classSet.Iterator()
+
+	for classname := range iter.C {
+		fmt.Println(classname)
+	}
+
+}
+
+// Some HTML elements had multiple classes, and their class values would be appended to the list as one class
+// This function separates those elements and returns a new slice containing the separated elements
+func separateAllClassNames(classList []string) []string {
+	var cleanList []string
+	// var newList []string
+	for _, classes := range classList {
+		if strings.Contains(classes, " ") {
+			choppedString := strings.Split(classes, " ")
+			// Append the chopped up string slice's values to the slice
+			cleanList = append(cleanList, choppedString...)
+		} else {
+			cleanList = append(cleanList, classes)
+		}
+	}
+
+	return cleanList
 }
 
 // Function that will read a directory for html files
@@ -45,8 +74,7 @@ func GetClassesHTMLFiles(path string) []string {
 // Function that will iterate over an html file and generate a list of all class names in the file
 func GetClassesFromHTMLFile(path string) []string {
 	//read the file
-	file, err :=
-		os.Open(path)
+	file, err := os.Open(path)
 	if err != nil {
 		log.Fatal(err)
 	}

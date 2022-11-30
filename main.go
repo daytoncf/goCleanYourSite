@@ -49,17 +49,15 @@ func separateAllClassNames(classList []string) []string {
 func GetClassesHTMLFiles(path string) []string {
 	f, err := os.Open(path)
 	if err != nil {
-		fmt.Println("ERR1")
-
-		return []string{}
+		log.Fatal(err)
 	}
 
 	files, err := f.Readdirnames(0)
-	f.Close()
+
 	if err != nil {
-		fmt.Println("ERR2")
-		return []string{}
+		log.Fatal(err)
 	}
+	defer f.Close()
 
 	classes := make([]string, 0)
 

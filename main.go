@@ -15,6 +15,7 @@ func main() {
 
 	dir := flag.String("directory", "./content/", "Path to html files")
 
+	fmt.Println(*dir)
 	classList := GetClassesHTMLFiles(*dir)
 	cleanedList := separateAllClassNames(classList)
 	classSet := mapset.NewSet(cleanedList...)
@@ -23,6 +24,36 @@ func main() {
 
 	for classname := range iter.C {
 		fmt.Println(classname)
+	}
+
+	cleanAllCSSFiles(*dir)
+}
+
+func cleanCSSFile(path string) {
+
+	// create string array that represents the css file, each value being a different line
+	fileString := fileToString(path)
+	fileLines := strings.Split(fileString, "\n")
+
+	for _, s := range fileLines {
+		fmt.Println(s)
+	}
+}
+
+func cleanAllCSSFiles(path string) {
+	f, err := os.Open(path)
+	checkErr(err)
+	defer f.Close()
+
+	files, err := f.Readdirnames(0)
+	checkErr(err)
+
+	for _, file := range files {
+		if strings.HasSuffix(file, ".css") {
+			// Do stuff here
+			fullFilename := path + file
+			cleanCSSFile(fullFilename)
+		}
 	}
 }
 
@@ -44,50 +75,13 @@ func separateAllClassNames(classList []string) []string {
 	return cleanList
 }
 
-func cleanCSSFile(path string) {
-
-	// Read file
-	file, err := os.Open(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-	// Do more stuff below
-
-}
-
-func cleanAllCSSFiles(path string) {
-	f, err := os.Open(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	files, err := f.Readdirnames(0)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-
-	for _, file := range files {
-		if strings.HasSuffix(file, ".css") {
-			// Do stuff here
-		}
-	}
-}
-
 // Function that will read a directory for html files
 func GetClassesHTMLFiles(path string) []string {
 	f, err := os.Open(path)
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkErr(err)
 
 	files, err := f.Readdirnames(0)
-
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkErr(err)
 	defer f.Close()
 
 	classes := make([]string, 0)
@@ -106,9 +100,7 @@ func GetClassesHTMLFiles(path string) []string {
 func GetClassesFromHTMLFile(path string) []string {
 	//read the file
 	file, err := os.Open(path)
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkErr(err)
 	defer file.Close()
 
 	//create a new tokenizer
@@ -135,4 +127,18 @@ func GetClassesFromHTMLFile(path string) []string {
 	}
 
 	return classes
+}
+
+// Function that dumps a file as a string
+func fileToString(filename string) string {
+	file, err := os.ReadFile(filename)
+	checkErr(err)
+	return string(file)
+}
+
+// for repeated error checking functionality
+func checkErr(e error) {
+	if e != nil {
+		log.Fatal(e)
+	}
 }

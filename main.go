@@ -1,52 +1,66 @@
 package main
 
 import (
-	"flag"
+	// "flag"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
-	mapset "github.com/deckarep/golang-set/v2"
+	css "github.com/daytoncf/goCleanSS/css"
+	lib "github.com/daytoncf/goCleanSS/pkg/lib"
+
+	// mapset "github.com/deckarep/golang-set/v2"
 	"golang.org/x/net/html"
 )
 
 func main() {
 
-	dir := flag.String("directory", "./content/", "Path to html files")
+	// dir := flag.String("directory", "./content/", "Path to html files")
 
-	fmt.Println(*dir)
-	classList := GetClassesHTMLFiles(*dir)
-	cleanedList := separateAllClassNames(classList)
-	classSet := mapset.NewSet(cleanedList...)
+	// fmt.Println(*dir)
+	// classList := GetClassesHTMLFiles(*dir)
+	// cleanedList := separateAllClassNames(classList)
+	// classSet := mapset.NewSet(cleanedList...)
 
-	iter := classSet.Iterator()
+	// iter := classSet.Iterator()
+	// for classname := range iter.C {
+	// 	fmt.Println(classname)
+	// }
 
-	for classname := range iter.C {
-		fmt.Println(classname)
+	// cleanAllCSSFiles(*dir)
+
+	decBlock := `    padding: 0 1rem;
+    display: flex;
+    justify-content: space-between;   `
+	fmt.Println("Parsing declaration block: ")
+	decs := css.ParseDeclarationBlock(decBlock)
+
+	for _, v := range decs {
+		fmt.Printf("Property: %s, Value: %s\n", v.Property, v.Value)
 	}
-
-	cleanAllCSSFiles(*dir)
 }
 
 func cleanCSSFile(path string) {
 
 	// create string array that represents the css file, each value being a different line
-	fileString := fileToString(path)
-	fileLines := strings.Split(fileString, "\n")
+	fileString := lib.FileToString(path)
+	// fileLines := strings.Split(fileString, "\n")
 
-	for _, s := range fileLines {
-		fmt.Println(s)
-	}
+	// for _, s := range fileLines {
+	// 	fmt.Println(s)
+	// }
+
+	fmt.Println(fileString)
 }
 
+// Iterates over all css files in a directory and runs cleanCSSFile
 func cleanAllCSSFiles(path string) {
 	f, err := os.Open(path)
-	checkErr(err)
+	lib.CheckErr(err)
 	defer f.Close()
 
 	files, err := f.Readdirnames(0)
-	checkErr(err)
+	lib.CheckErr(err)
 
 	for _, file := range files {
 		if strings.HasSuffix(file, ".css") {
@@ -56,6 +70,8 @@ func cleanAllCSSFiles(path string) {
 		}
 	}
 }
+
+
 
 // Some HTML elements had multiple classes, and their class values would be appended to the list as one class
 // This function separates those elements and returns a new slice containing the separated elements
@@ -78,10 +94,10 @@ func separateAllClassNames(classList []string) []string {
 // Function that will read a directory for html files
 func GetClassesHTMLFiles(path string) []string {
 	f, err := os.Open(path)
-	checkErr(err)
+	lib.CheckErr(err)
 
 	files, err := f.Readdirnames(0)
-	checkErr(err)
+	lib.CheckErr(err)
 	defer f.Close()
 
 	classes := make([]string, 0)
@@ -100,7 +116,7 @@ func GetClassesHTMLFiles(path string) []string {
 func GetClassesFromHTMLFile(path string) []string {
 	//read the file
 	file, err := os.Open(path)
-	checkErr(err)
+	lib.CheckErr(err)
 	defer file.Close()
 
 	//create a new tokenizer
@@ -127,18 +143,4 @@ func GetClassesFromHTMLFile(path string) []string {
 	}
 
 	return classes
-}
-
-// Function that dumps a file as a string
-func fileToString(filename string) string {
-	file, err := os.ReadFile(filename)
-	checkErr(err)
-	return string(file)
-}
-
-// for repeated error checking functionality
-func checkErr(e error) {
-	if e != nil {
-		log.Fatal(e)
-	}
 }

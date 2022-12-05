@@ -2,6 +2,7 @@ package css
 
 import (
 	"strings"
+
 	lib "github.com/daytoncf/goCleanSS/pkg/lib"
 )
 
@@ -25,12 +26,12 @@ type Token struct {
 }
 
 // Factory function for CSSToken
-func newToken(t TokenType, selector string, declarations []Declaration) Token {
+func NewToken(t TokenType, selector string, declarations []Declaration) Token {
 	return Token{t, selector, declarations}
 }
 
 // Factory function for CSSDeclaration
-func newDeclaration(property, value string) Declaration {
+func NewDeclaration(property, value string) Declaration {
 	return Declaration{property, value}
 }
 
@@ -48,10 +49,10 @@ func ParseDeclarationBlock(declarationBlock string) []Declaration {
 	for _, char := range minDeclarationBlock {
 		switch char {
 		case ':':
-			tempProperty = strings.TrimSpace(popRuneArrToString(&charQ))
+			tempProperty = strings.TrimSpace(lib.PopRuneArrToString(&charQ))
 		case ';':
-			tempValue = strings.TrimSpace(popRuneArrToString(&charQ))
-			declarations = append(declarations, newDeclaration(tempProperty, tempValue))
+			tempValue = strings.TrimSpace(lib.PopRuneArrToString(&charQ))
+			declarations = append(declarations, NewDeclaration(tempProperty, tempValue))
 		default:
 			charQ = append(charQ, char)
 		}
@@ -59,26 +60,8 @@ func ParseDeclarationBlock(declarationBlock string) []Declaration {
 	return declarations
 }
 
-func popRuneArrToString(chars *[]rune) string {
-	startingLength := len(*chars)
-	stringOfRunes := make([]rune, startingLength)
-
-	for i := 0; i < startingLength; i++ {
-		// Pop from front of queue
-		stringOfRunes[i] = (*chars)[0] // have to wrap with parentheses to access an index in dereferenced pointer
-		if i != startingLength-1 {
-			*chars = (*chars)[1:]
-		} else {
-			// if only 1 rune left, make rune empty string
-			*chars = []rune{}
-		}
-	}
-
-	return string(stringOfRunes)
-}
-
 // Removes all whitespace characters within a given string
-func tokenizeCSSFile(path string) []Token {
+func Tokenizer(path string) []Token {
 	var tokens []Token
 
 	// Convert file into string to make it easily iterable
@@ -86,11 +69,21 @@ func tokenizeCSSFile(path string) []Token {
 	var charQueue []rune
 	var readingComment bool = false
 
+	var selector string
+	var decBlock string
 	for _, v := range fileString {
 		if !readingComment {
-			if v == '/' {
+			switch v {
+			case '/':
 				readingComment = true
-			} else {
+			case '{':
+				selector = strings.TrimSpace(lib.PopRuneArrToString(&charQueue))
+			case '}':
+				decBlock = strings.TrimSpace(lib.PopRuneArrToString(&charQueue))
+				// fmt.Printf("Selector: %v\n", selector)
+				// fmt.Println(decBlock)
+				tokens = append(tokens, NewToken(RULESET, selector, ParseDeclarationBlock(decBlock)))
+			default:
 				charQueue = append(charQueue, v)
 			}
 		} else {

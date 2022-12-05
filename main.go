@@ -29,14 +29,10 @@ func main() {
 
 	// cleanAllCSSFiles(*dir)
 
-	decBlock := `    padding: 0 1rem;
-    display: flex;
-    justify-content: space-between;   `
-	fmt.Println("Parsing declaration block: ")
-	decs := css.ParseDeclarationBlock(decBlock)
+	cssTokens := css.Tokenizer("./content/reboot_dev_core.css")
 
-	for _, v := range decs {
-		fmt.Printf("Property: %s, Value: %s\n", v.Property, v.Value)
+	for _, v := range cssTokens {
+		fmt.Printf("Type: %v, Selector: %s,\n%v\n", v.TokenType, v.Selector, v.Declarations)
 	}
 }
 
@@ -70,8 +66,6 @@ func cleanAllCSSFiles(path string) {
 		}
 	}
 }
-
-
 
 // Some HTML elements had multiple classes, and their class values would be appended to the list as one class
 // This function separates those elements and returns a new slice containing the separated elements

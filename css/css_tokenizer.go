@@ -88,8 +88,8 @@ func Tokenizer(path string) []Token {
 	// Convert file into string to make it easily iterable
 	fileString := lib.FileToString(path)
 
-	// var testQ lib.Queue
-	var charQueue, charStack []rune
+	var charQueue lib.Queue
+	// var charQueue, charStack []rune
 	var readingComment, readingAtRule bool = false, false
 	var comment, selector, atRuleSelector, decBlock string
 	for i, v := range fileString {
@@ -97,7 +97,7 @@ func Tokenizer(path string) []Token {
 		case '/':
 			if readingComment && peekForCommentEnd(fileString, i) {
 				// Pop comments contents into `comment`
-				comment = strings.TrimSpace(lib.PopRuneArrToString(&charQueue))
+				comment = strings.TrimSpace(charQueue.PopQueueToString())
 				// Create Token for comment, using its contents for the selector exluding asterisk, [1:len(s)-1]
 				tokens = append(tokens, NewToken(COMMENT, comment, []Declaration{}))
 				readingComment = false
@@ -107,25 +107,24 @@ func Tokenizer(path string) []Token {
 			}
 		case '{':
 			// Pop selector name into `selector`
-			selector = strings.TrimSpace(lib.PopRuneArrToString(&charQueue))
+			selector = strings.TrimSpace(charQueue.PopQueueToString())
 			if strings.HasPrefix(selector, "@") {
 				readingAtRule = true
 				atRuleSelector = selector
 				fmt.Printf("%v,%v", readingAtRule, atRuleSelector)
 			}
 			// Push '{' onto charStack to keep track of nested / @rule blocks
-			charStack = append(charStack, v)
+			// charStack = append(charStack, v)
 		case '}':
 			// Pop '{' off top of stack
 
 			// Pop contents of the declaration block into `decBlock`
-			decBlock = strings.TrimSpace(lib.PopRuneArrToString(&charQueue))
+			decBlock = strings.TrimSpace(charQueue.PopQueueToString())
 
 			// Create new token after declaration block finishes :)
 			tokens = append(tokens, NewToken(RULESET, selector, ParseDeclarationBlock(decBlock)))
 		default:
-			charQueue = append(charQueue, v)
-			// testQ.Push(v)
+			charQueue.Push(v)
 		}
 	}
 	return tokens

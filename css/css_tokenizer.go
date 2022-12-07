@@ -1,7 +1,6 @@
 package css
 
 import (
-	"fmt"
 	"strings"
 
 	lib "github.com/daytoncf/goCleanSS/pkg/lib"
@@ -26,6 +25,7 @@ const (
 	MEDIA
 	PAGE
 	SUPPORTS
+	ATERROR
 )
 
 type Declaration struct {
@@ -41,7 +41,13 @@ type Token struct {
 
 type AtRule struct {
 	AtRuleType AtRuleType
+	Selector   string
 	Tokens     []Token
+}
+
+// Factory function for AtRule
+func NewAtRule(t AtRuleType, selector string, tokens []Token) AtRule {
+	return AtRule{t, selector, tokens}
 }
 
 // Factory function for CSSToken
@@ -77,14 +83,71 @@ func ParseDeclarationBlock(declarationBlock string) []Declaration {
 	return declarations
 }
 
-// func ParseAtRuleBlock(declarationBlock string) []Token {
+// Function that parses an entire @rule block, which will have its own set of tokens
+func ParseAtRuleBlock(atRuleBlock string) []Token {
+	// Initialize tokens to be returned
+	tokens := make([]Token, 0)
 
-// }
+	var charQueue lib.Queue
+	var readingComment bool = false
+
+	var selector string
+	var decBlock string
+	for i, v := range atRuleBlock {
+		switch v {
+		case '/':
+			if readingComment && peekForCommentEnd(atRuleBlock, i) {
+				comment := strings.TrimSpace(charQueue.PopQueueToString())
+				// Create Token for comment, using its contents for the selector exluding asterisk, [1:len(s)-1]
+				tokens = append(tokens, NewToken(COMMENT, comment, []Declaration{}))
+			} else {
+				// Check to see if there is an asterisk following this /
+				readingComment = peekForCommentStart(atRuleBlock, i)
+			}
+		case '{':
+			selector = strings.TrimSpace(charQueue.PopQueueToString())
+		case '}':
+			decBlock = strings.TrimSpace(charQueue.PopQueueToString())
+			// Create new token after declaration block finishes :)
+			tokens = append(tokens, NewToken(RULESET, selector, ParseDeclarationBlock(decBlock)))
+		default:
+			charQueue.Push(v)
+		}
+	}
+
+	return tokens
+}
+
+// Function that takes full selector, such as `@media screen and (max-width: 600px)` and returns the atRule type.
+// In the above example, the function will return `MEDIA` for @media.
+func getAtRuleType(selector string) AtRuleType {
+	atRuleName := selector[:strings.Index(selector, " ")]
+
+	switch atRuleName {
+	case "@charset":
+		return CHARSET
+	case "@counter-style":
+		return COUNTERSTYLE
+	case "@font-face":
+		return FONTFACE
+	case "@import":
+		return IMPORT
+	case "@keyframes":
+		return KEYFRAMES
+	case "@media":
+		return MEDIA
+	case "@page":
+		return PAGE
+	case "@supports":
+		return SUPPORTS
+	}
+	return ATERROR // ahhhhh it didnt work!! its a terror!!! (this is a joke bad about my bad naming)
+}
 
 // Removes all whitespace characters within a given string
-func Tokenizer(path string) []Token {
+func Tokenizer(path string) ([]Token, []AtRule) {
 	var tokens []Token
-
+	var atRules []AtRule
 	// Convert file into string to make it easily iterable
 	fileString := lib.FileToString(path)
 
@@ -127,8 +190,7 @@ func Tokenizer(path string) []Token {
 			if charStack.IsEmpty() && readingAtRule {
 				readingAtRule = false
 				atRuleBlock = strings.TrimSpace(charQueue.PopQueueToString())
-				fmt.Printf("Found an @rule: %s\n", atRuleSelector)
-				fmt.Println(atRuleBlock)
+				atRules = append(atRules, NewAtRule(getAtRuleType(atRuleSelector), atRuleSelector, ParseAtRuleBlock(atRuleBlock)))
 			} else if charStack.IsEmpty() {
 				// Pop contents of the declaration block into `decBlock`
 				decBlock = strings.TrimSpace(charQueue.PopQueueToString())
@@ -144,7 +206,7 @@ func Tokenizer(path string) []Token {
 			charQueue.Push(v)
 		}
 	}
-	return tokens
+	return tokens, atRules
 }
 
 // Function that is called after a '/' rune is encountered.

@@ -29,10 +29,17 @@ func main() {
 
 	// cleanAllCSSFiles(*dir)
 
-	cssTokens := css.Tokenizer("./content/reboot_dev_core.css")
+	cssTokens, cssAtRules := css.Tokenizer("./content/reboot_dev_core.css")
 
 	for _, v := range cssTokens {
 		fmt.Printf("Type: %v, Selector: %s,\n%v\n", v.TokenType, v.Selector, v.Declarations)
+	}
+
+	for _, v := range cssAtRules {
+		fmt.Printf("@rule selector: %s, type: %v\nTokens: \n", v.Selector, v.AtRuleType)
+		for _, toks := range v.Tokens {
+			fmt.Printf("Type: %v, Selector: %s,\n%v\n", toks.TokenType, toks.Selector, toks.Declarations)
+		}
 	}
 }
 

@@ -1,6 +1,7 @@
 package css
 
 import (
+	"fmt"
 	"strings"
 
 	lib "github.com/daytoncf/goCleanSS/pkg/lib"
@@ -60,23 +61,25 @@ func ParseDeclarationBlock(declarationBlock string) []Declaration {
 	minDeclarationBlock := strings.TrimSpace(declarationBlock)
 
 	// Initialize temp variables to store parsed values
-	var tempProperty string
-	var tempValue string
-
-	var charQ []rune
+	var tempProperty, tempValue string
+	var charQueue []rune
 	for _, char := range minDeclarationBlock {
 		switch char {
 		case ':':
-			tempProperty = strings.TrimSpace(lib.PopRuneArrToString(&charQ))
+			tempProperty = strings.TrimSpace(lib.PopRuneArrToString(&charQueue))
 		case ';':
-			tempValue = strings.TrimSpace(lib.PopRuneArrToString(&charQ))
+			tempValue = strings.TrimSpace(lib.PopRuneArrToString(&charQueue))
 			declarations = append(declarations, NewDeclaration(tempProperty, tempValue))
 		default:
-			charQ = append(charQ, char)
+			charQueue = append(charQueue, char)
 		}
 	}
 	return declarations
 }
+
+// func ParseAtRuleBlock(declarationBlock string) []Token {
+
+// }
 
 // Removes all whitespace characters within a given string
 func Tokenizer(path string) []Token {
@@ -84,31 +87,45 @@ func Tokenizer(path string) []Token {
 
 	// Convert file into string to make it easily iterable
 	fileString := lib.FileToString(path)
-	var charQueue []rune
-	var readingComment bool = false
 
-	var selector string
-	var decBlock string
+	// var testQ lib.Queue
+	var charQueue, charStack []rune
+	var readingComment, readingAtRule bool = false, false
+	var comment, selector, atRuleSelector, decBlock string
 	for i, v := range fileString {
 		switch v {
 		case '/':
 			if readingComment && peekForCommentEnd(fileString, i) {
-				comment := strings.TrimSpace(lib.PopRuneArrToString(&charQueue))
+				// Pop comments contents into `comment`
+				comment = strings.TrimSpace(lib.PopRuneArrToString(&charQueue))
 				// Create Token for comment, using its contents for the selector exluding asterisk, [1:len(s)-1]
-				tokens = append(tokens, NewToken(COMMENT, comment[1:len(comment)-1], []Declaration{}))
+				tokens = append(tokens, NewToken(COMMENT, comment, []Declaration{}))
+				readingComment = false
 			} else {
 				// Check to see if there is an asterisk following this /
 				readingComment = peekForCommentStart(fileString, i)
 			}
 		case '{':
+			// Pop selector name into `selector`
 			selector = strings.TrimSpace(lib.PopRuneArrToString(&charQueue))
+			if strings.HasPrefix(selector, "@") {
+				readingAtRule = true
+				atRuleSelector = selector
+				fmt.Printf("%v,%v", readingAtRule, atRuleSelector)
+			}
+			// Push '{' onto charStack to keep track of nested / @rule blocks
+			charStack = append(charStack, v)
 		case '}':
+			// Pop '{' off top of stack
+
+			// Pop contents of the declaration block into `decBlock`
 			decBlock = strings.TrimSpace(lib.PopRuneArrToString(&charQueue))
 
 			// Create new token after declaration block finishes :)
 			tokens = append(tokens, NewToken(RULESET, selector, ParseDeclarationBlock(decBlock)))
 		default:
 			charQueue = append(charQueue, v)
+			// testQ.Push(v)
 		}
 	}
 	return tokens

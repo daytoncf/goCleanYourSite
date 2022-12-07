@@ -14,6 +14,19 @@ const (
 	ERR
 )
 
+type AtRuleType int
+
+const (
+	CHARSET AtRuleType = iota
+	COUNTERSTYLE
+	FONTFACE
+	IMPORT
+	KEYFRAMES
+	MEDIA
+	PAGE
+	SUPPORTS
+)
+
 type Declaration struct {
 	Property string
 	Value    string
@@ -23,6 +36,11 @@ type Token struct {
 	TokenType    TokenType
 	Selector     string
 	Declarations []Declaration
+}
+
+type AtRule struct {
+	AtRuleType AtRuleType
+	Tokens     []Token
 }
 
 // Factory function for CSSToken
@@ -71,27 +89,39 @@ func Tokenizer(path string) []Token {
 
 	var selector string
 	var decBlock string
-	for _, v := range fileString {
-		if !readingComment {
-			switch v {
-			case '/':
-				readingComment = true
-			case '{':
-				selector = strings.TrimSpace(lib.PopRuneArrToString(&charQueue))
-			case '}':
-				decBlock = strings.TrimSpace(lib.PopRuneArrToString(&charQueue))
-				// fmt.Printf("Selector: %v\n", selector)
-				// fmt.Println(decBlock)
-				tokens = append(tokens, NewToken(RULESET, selector, ParseDeclarationBlock(decBlock)))
-			default:
-				charQueue = append(charQueue, v)
+	for i, v := range fileString {
+		switch v {
+		case '/':
+			if readingComment && peekForCommentEnd(fileString, i) {
+				comment := strings.TrimSpace(lib.PopRuneArrToString(&charQueue))
+				// Create Token for comment, using its contents for the selector exluding asterisk, [1:len(s)-1]
+				tokens = append(tokens, NewToken(COMMENT, comment[1:len(comment)-1], []Declaration{}))
+			} else {
+				// Check to see if there is an asterisk following this /
+				readingComment = peekForCommentStart(fileString, i)
 			}
-		} else {
-			if v == '/' {
-				readingComment = false
-			}
-		}
+		case '{':
+			selector = strings.TrimSpace(lib.PopRuneArrToString(&charQueue))
+		case '}':
+			decBlock = strings.TrimSpace(lib.PopRuneArrToString(&charQueue))
 
+			// Create new token after declaration block finishes :)
+			tokens = append(tokens, NewToken(RULESET, selector, ParseDeclarationBlock(decBlock)))
+		default:
+			charQueue = append(charQueue, v)
+		}
 	}
 	return tokens
+}
+
+// Function that is called after a '/' rune is encountered.
+// Check to see if the following rune in string is an asterisk. Returns true if so.
+func peekForCommentStart(fileString string, currPos int) bool {
+	return fileString[currPos+1] == '*'
+}
+
+// Function that is called after a '/' rune is encountered.
+// Check to see if the preceding rune in string is an asterisk. Returns true if so.
+func peekForCommentEnd(fileString string, currPos int) bool {
+	return fileString[currPos-1] == '*'
 }

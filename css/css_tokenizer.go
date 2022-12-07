@@ -89,7 +89,7 @@ func Tokenizer(path string) []Token {
 	fileString := lib.FileToString(path)
 
 	var charQueue lib.Queue
-	// var charQueue, charStack []rune
+	var charStack lib.Stack
 	var readingComment, readingAtRule bool = false, false
 	var comment, selector, atRuleSelector, decBlock string
 	for i, v := range fileString {
@@ -114,7 +114,7 @@ func Tokenizer(path string) []Token {
 				fmt.Printf("%v,%v", readingAtRule, atRuleSelector)
 			}
 			// Push '{' onto charStack to keep track of nested / @rule blocks
-			// charStack = append(charStack, v)
+			charStack.Push(v)
 		case '}':
 			// Pop '{' off top of stack
 

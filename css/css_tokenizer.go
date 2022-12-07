@@ -91,7 +91,7 @@ func Tokenizer(path string) []Token {
 	var charQueue lib.Queue
 	var charStack lib.Stack
 	var readingComment, readingAtRule bool = false, false
-	var comment, selector, atRuleSelector, decBlock string
+	var comment, selector, atRuleSelector, decBlock, atRuleBlock string
 	for i, v := range fileString {
 		switch v {
 		case '/':
@@ -106,23 +106,40 @@ func Tokenizer(path string) []Token {
 				readingComment = peekForCommentStart(fileString, i)
 			}
 		case '{':
-			// Pop selector name into `selector`
-			selector = strings.TrimSpace(charQueue.PopQueueToString())
-			if strings.HasPrefix(selector, "@") {
-				readingAtRule = true
-				atRuleSelector = selector
-				fmt.Printf("%v,%v", readingAtRule, atRuleSelector)
+
+			if charStack.IsEmpty() {
+				// Pop selector name into `selector`
+				selector = strings.TrimSpace(charQueue.PopQueueToString())
+
+				if strings.HasPrefix(selector, "@") {
+					// If the selector is an @rule, hold onto this. We will use it later
+					atRuleSelector = selector
+				}
+			} else {
+				charQueue.Push(v) // Include the braces in this block, will use for parsing later
 			}
 			// Push '{' onto charStack to keep track of nested / @rule blocks
 			charStack.Push(v)
 		case '}':
 			// Pop '{' off top of stack
+			charStack.Pop()
 
-			// Pop contents of the declaration block into `decBlock`
-			decBlock = strings.TrimSpace(charQueue.PopQueueToString())
+			if charStack.IsEmpty() && readingAtRule {
+				readingAtRule = false
+				atRuleBlock = strings.TrimSpace(charQueue.PopQueueToString())
+				fmt.Printf("Found an @rule: %s\n", atRuleSelector)
+				fmt.Println(atRuleBlock)
+			} else if charStack.IsEmpty() {
+				// Pop contents of the declaration block into `decBlock`
+				decBlock = strings.TrimSpace(charQueue.PopQueueToString())
 
-			// Create new token after declaration block finishes :)
-			tokens = append(tokens, NewToken(RULESET, selector, ParseDeclarationBlock(decBlock)))
+				// Create new token after declaration block finishes :)
+				tokens = append(tokens, NewToken(RULESET, selector, ParseDeclarationBlock(decBlock)))
+			} else {
+				readingAtRule = true
+				charQueue.Push(v) // Include the braces in this block, will use for parsing later
+			}
+
 		default:
 			charQueue.Push(v)
 		}

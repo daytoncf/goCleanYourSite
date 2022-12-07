@@ -14,6 +14,18 @@ const (
 	ERR
 )
 
+func (t TokenType) String() string {
+	switch(t) {
+	case COMMENT:
+		return "Comment"
+	case RULESET:
+		return "Ruleset"
+	case ERR:
+		return "Error"
+	}
+	return "Cannot evaluate token type"
+}
+
 type AtRuleType int
 
 const (
@@ -27,6 +39,28 @@ const (
 	SUPPORTS
 	ATERROR
 )
+
+func (a AtRuleType) String() string {
+	switch (a) {
+	case CHARSET:
+		return "charset"
+	case COUNTERSTYLE:
+		return "counter-style"
+	case FONTFACE:
+		return "font-face"
+	case IMPORT:
+		return "import"
+	case KEYFRAMES:
+		return "keyframes"
+	case MEDIA:
+		return "media"
+	case PAGE:
+		return "page"
+	case SUPPORTS:
+		return "supports"
+	}
+	return "Cannot evaluate @rule type"
+}
 
 type Declaration struct {
 	Property string

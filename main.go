@@ -32,13 +32,13 @@ func main() {
 	cssTokens, cssAtRules := css.Tokenizer("./content/reboot_dev_core.css")
 
 	for _, v := range cssTokens {
-		fmt.Printf("Type: %v, Selector: %s,\n%v\n", v.TokenType, v.Selector, v.Declarations)
+		fmt.Printf("Type: %s, Selector: %s,\n%v\n", v.TokenType.String(), v.Selector, v.Declarations)
 	}
 
 	for _, v := range cssAtRules {
-		fmt.Printf("@rule selector: %s, type: %v\nTokens: \n", v.Selector, v.AtRuleType)
+		fmt.Printf("@rule selector: %s, type: %s\nTokens: \n", v.Selector, v.AtRuleType.String())
 		for _, toks := range v.Tokens {
-			fmt.Printf("Type: %v, Selector: %s,\n%v\n", toks.TokenType, toks.Selector, toks.Declarations)
+			fmt.Printf("Type: %s, Selector: %s,\n%v\n", toks.TokenType.String(), toks.Selector, toks.Declarations)
 		}
 	}
 }

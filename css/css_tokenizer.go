@@ -6,6 +6,12 @@ import (
 	lib "github.com/daytoncf/goCleanSS/pkg/lib"
 )
 
+
+type Declaration struct {
+	Property string
+	Value    string
+}
+
 type TokenType int
 
 const (
@@ -24,6 +30,18 @@ func (t TokenType) String() string {
 		return "Error"
 	}
 	return "Cannot evaluate token type"
+}
+
+// Tokens are a representation of CSS rulesets, whether it be for classes, ids, or element rulesets
+// 
+// Some example selectors for a token would be the following: `.myClass`, `#Contact`, or `a:hover`
+// 
+// Selectors are always followed by their rulesets; a set of CSS declarations.
+// Declarations are a property: value pair, such as `width: 100%`
+type Token struct {
+	TokenType    TokenType
+	Selector     string
+	Declarations []Declaration
 }
 
 type AtRuleType int
@@ -62,17 +80,14 @@ func (a AtRuleType) String() string {
 	return "Cannot evaluate @rule type"
 }
 
-type Declaration struct {
-	Property string
-	Value    string
-}
 
-type Token struct {
-	TokenType    TokenType
-	Selector     string
-	Declarations []Declaration
-}
 
+// This structure handles at-rules, such as @media or @keyframes
+// 
+// An example selector for an At-rule would be the following: `@media screen and (max-width: 600px)`
+// 
+// At-rules are often followed by their own set of rulesets, such as for targeting
+// different screen sizes or defining animations, thus containing their own tokens
 type AtRule struct {
 	AtRuleType AtRuleType
 	Selector   string

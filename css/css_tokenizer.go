@@ -6,7 +6,6 @@ import (
 	lib "github.com/daytoncf/goCleanSS/pkg/lib"
 )
 
-
 type Declaration struct {
 	Property string
 	Value    string
@@ -21,7 +20,7 @@ const (
 )
 
 func (t TokenType) String() string {
-	switch(t) {
+	switch t {
 	case COMMENT:
 		return "Comment"
 	case RULESET:
@@ -33,9 +32,9 @@ func (t TokenType) String() string {
 }
 
 // Tokens are a representation of CSS rulesets, whether it be for classes, ids, or element rulesets
-// 
+//
 // Some example selectors for a token would be the following: `.myClass`, `#Contact`, or `a:hover`
-// 
+//
 // Selectors are always followed by their rulesets; a set of CSS declarations.
 // Declarations are a property: value pair, such as `width: 100%`
 type Token struct {
@@ -59,7 +58,7 @@ const (
 )
 
 func (a AtRuleType) String() string {
-	switch (a) {
+	switch a {
 	case CHARSET:
 		return "charset"
 	case COUNTERSTYLE:
@@ -80,18 +79,22 @@ func (a AtRuleType) String() string {
 	return "Cannot evaluate @rule type"
 }
 
-
-
 // This structure handles at-rules, such as @media or @keyframes
-// 
+//
 // An example selector for an At-rule would be the following: `@media screen and (max-width: 600px)`
-// 
+//
 // At-rules are often followed by their own set of rulesets, such as for targeting
 // different screen sizes or defining animations, thus containing their own tokens
 type AtRule struct {
 	AtRuleType AtRuleType
 	Selector   string
 	Tokens     []Token
+}
+
+// Collection struct that holds all of that at-rules and tokens
+type Stylesheet struct {
+	AtRules []AtRule
+	Tokens  []Token
 }
 
 // Factory function for AtRule
@@ -194,7 +197,7 @@ func getAtRuleType(selector string) AtRuleType {
 }
 
 // Removes all whitespace characters within a given string
-func Tokenizer(path string) ([]Token, []AtRule) {
+func Tokenizer(path string) Stylesheet {
 	var tokens []Token
 	var atRules []AtRule
 	// Convert file into string to make it easily iterable
@@ -255,7 +258,7 @@ func Tokenizer(path string) ([]Token, []AtRule) {
 			charQueue.Push(v)
 		}
 	}
-	return tokens, atRules
+	return Stylesheet{atRules, tokens}
 }
 
 // Function that is called after a '/' rune is encountered.

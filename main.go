@@ -29,13 +29,13 @@ func main() {
 
 	// cleanAllCSSFiles(*dir)
 
-	cssTokens, cssAtRules := css.Tokenizer("./content/reboot_dev_core.css")
+	stylesheet := css.Tokenizer("./content/reboot_dev_core.css")
 
-	for _, v := range cssTokens {
+	for _, v := range stylesheet.Tokens {
 		fmt.Printf("Type: %s, Selector: %s,\n%v\n", v.TokenType.String(), v.Selector, v.Declarations)
 	}
 
-	for _, v := range cssAtRules {
+	for _, v := range stylesheet.AtRules {
 		fmt.Printf("@rule selector: %s, type: %s\nTokens: \n", v.Selector, v.AtRuleType.String())
 		for _, toks := range v.Tokens {
 			fmt.Printf("Type: %s, Selector: %s,\n%v\n", toks.TokenType.String(), toks.Selector, toks.Declarations)
@@ -131,7 +131,7 @@ func GetClassesFromHTMLFile(path string) []string {
 		TokenType := tokenizer.Next()
 		token := tokenizer.Token()
 
-		//check if the token is a class
+		//check if the token has a class
 		for _, attribute := range token.Attr {
 			if attribute.Key == "class" {
 				classes = append(classes, attribute.Val)

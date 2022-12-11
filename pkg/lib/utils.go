@@ -23,9 +23,9 @@ func (s *Stack) Pop() rune {
 	if s.IsEmpty() {
 		return rune(0) // return null rune if stack is empty
 	}
-	topIndex := len(*s) - 1 // Index of top of stack
+	topIndex := len(*s) - 1     // Index of top of stack
 	poppedVal := (*s)[topIndex] // assign `poppedVal` value at top of stack
-	*s = (*s)[:topIndex] // remove top most element
+	*s = (*s)[:topIndex]        // remove top most element
 	return poppedVal
 }
 
@@ -47,7 +47,7 @@ func (q *Queue) Pop() rune {
 		return rune(0) // return null rune if stack is empty
 	}
 	poppedVal := (*q)[0] // assign `poppedVal` value at top of stack
-	if (len(*q) > 1) {
+	if len(*q) > 1 {
 		*q = (*q)[1:] // If length of queue is >= 2, set queue equal to all elements beyond the first
 	} else {
 		*q = []rune{} // If length of queue is 1, set queue equal to empty slice
@@ -103,4 +103,16 @@ func CheckErr(e error) {
 	if e != nil {
 		log.Fatal(e)
 	}
+}
+
+// Convert a slice of byte slices to a slice of strings
+func ByteSlicesToStringSlice(input [][]byte) []string {
+	// Initialize new slice
+	newSlice := make([]string, len(input))
+
+	// Convert and insert
+	for i, v := range input {
+		newSlice[i] = string(v)
+	}
+	return newSlice
 }

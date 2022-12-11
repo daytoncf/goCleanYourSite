@@ -1,63 +1,64 @@
 package main
 
 import (
-	// "flag"
+	"flag"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	css "github.com/daytoncf/goCleanSS/css"
 	lib "github.com/daytoncf/goCleanSS/pkg/lib"
 
-	// mapset "github.com/deckarep/golang-set/v2"
+	mapset "github.com/deckarep/golang-set/v2"
 	"golang.org/x/net/html"
 )
 
 func main() {
 
-	// dir := flag.String("directory", "./content/", "Path to html files")
+	dir := flag.String("directory", "./content/", "Path to html files")
 
-	// fmt.Println(*dir)
-	// classList := GetClassesHTMLFiles(*dir)
-	// cleanedList := separateAllClassNames(classList)
-	// classSet := mapset.NewSet(cleanedList...)
-
-	// iter := classSet.Iterator()
-	// for classname := range iter.C {
-	// 	fmt.Println(classname)
-	// }
-
-	// cleanAllCSSFiles(*dir)
-
-	stylesheet := css.Tokenizer("./content/reboot_dev_core.css")
-
-	for _, v := range stylesheet.Tokens {
-		fmt.Printf("Type: %s, Selector: %s,\n%v\n", v.TokenType.String(), v.Selector, v.Declarations)
-	}
-
-	for _, v := range stylesheet.AtRules {
-		fmt.Printf("@rule selector: %s, type: %s\nTokens: \n", v.Selector, v.AtRuleType.String())
-		for _, toks := range v.Tokens {
-			fmt.Printf("Type: %s, Selector: %s,\n%v\n", toks.TokenType.String(), toks.Selector, toks.Declarations)
-		}
-	}
+	classList := GetClassesHTMLFiles(*dir)
+	cleanedList := separateAllClassNames(classList)
+	classSet := mapset.NewSet(cleanedList...)
+	cleanAllCSSFiles(*dir, classSet)
 }
 
-func cleanCSSFile(path string) {
+func cleanCSSFile(filename string, classSet mapset.Set[string]) {
 
-	// create string array that represents the css file, each value being a different line
-	fileString := lib.FileToString(path)
-	// fileLines := strings.Split(fileString, "\n")
+	// Initialize variable that will contain the new file contents
+	var newFile string
+	// Parse stylesheet
+	stylesheet := css.Tokenizer(filename)
 
-	// for _, s := range fileLines {
-	// 	fmt.Println(s)
-	// }
+	// Iterate over each top level token
+	for _, token := range stylesheet.Tokens {
+		// Check to see if the token's selector uses a class
+		if classes := extractClassesFromSelector(token.Selector); len(classes) > 0 {
+			for _, class := range classes {
+				// If the class is within the class set, add to string
+				if classSet.Contains(class) {
+					newFile += token.Serialize() + "\n"
+					break // assuming that if it has the first class, it has all of them. Need a better solution
+				}
+			}
+		} else {
+			newFile += token.Serialize() + "\n"
+		}
+	}
 
-	fmt.Println(fileString)
+	// Get index of last '/' to find the end of the directory prefix
+	dirEnd := strings.LastIndex(filename, "/") + 1
+	// Generate new filename with path prefixed
+	newFileName := filename[:dirEnd] + "new_" + filename[dirEnd:]
+
+	// Write to the new file and check errors
+	err := os.WriteFile(newFileName, []byte(newFile), 0666)
+	lib.CheckErr(err)
 }
 
 // Iterates over all css files in a directory and runs cleanCSSFile
-func cleanAllCSSFiles(path string) {
+func cleanAllCSSFiles(path string, classSet mapset.Set[string]) {
 	f, err := os.Open(path)
 	lib.CheckErr(err)
 	defer f.Close()
@@ -69,9 +70,26 @@ func cleanAllCSSFiles(path string) {
 		if strings.HasSuffix(file, ".css") {
 			// Do stuff here
 			fullFilename := path + file
-			cleanCSSFile(fullFilename)
+			cleanCSSFile(fullFilename, classSet)
 		}
 	}
+}
+
+// Function that takes in full css selector and returns the classname(s)
+// EX: "a.myClass:hover" => ["myClass"], "p.myClass.anotherClass" => ["myClass", "anotherClass"]
+func extractClassesFromSelector(fullSelector string) []string {
+	if startIndex := strings.Index(fullSelector, "."); startIndex != -1 {
+		// Create regular expression to match classnames
+		classRegex := regexp.MustCompile("[.][a-zA-Z0-9-_]+")
+
+		// If matches to pattern are found, return them
+		if matches := classRegex.FindAll([]byte(fullSelector), -1); matches != nil {
+			return lib.ByteSlicesToStringSlice(matches)
+		}
+		fmt.Println("Pattern found no matches")
+	}
+	fmt.Println("No class selector found")
+	return []string{}
 }
 
 // Some HTML elements had multiple classes, and their class values would be appended to the list as one class

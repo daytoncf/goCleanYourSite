@@ -48,7 +48,7 @@ func (t *Token) Serialize() string {
 	 
 	var rules string = ""
 	for _, declaration := range t.Declarations {
-		rules += fmt.Sprintf("%s:%s;",declaration.Property)
+		rules += fmt.Sprintf("%s:%s;",declaration.Property, declaration.Value)
 	}
 	return fmt.Sprintf("%s{%s}", t.Selector, rules)
 }

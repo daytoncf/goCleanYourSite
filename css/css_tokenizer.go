@@ -1,6 +1,7 @@
 package css
 
 import (
+	"fmt"
 	"strings"
 
 	lib "github.com/daytoncf/goCleanSS/pkg/lib"
@@ -41,6 +42,15 @@ type Token struct {
 	TokenType    TokenType
 	Selector     string
 	Declarations []Declaration
+}
+
+func (t *Token) Serialize() string {
+	 
+	var rules string = ""
+	for _, declaration := range t.Declarations {
+		rules += fmt.Sprintf("%s:%s;",declaration.Property)
+	}
+	return fmt.Sprintf("%s{%s}", t.Selector, rules)
 }
 
 type AtRuleType int

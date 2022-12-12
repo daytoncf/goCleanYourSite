@@ -4,7 +4,7 @@ goCleanYourSite is a simple Go program that will parse through your HTML files, 
 # Background
 There are multiple solutions out that do this exact thing, and in some cases more, but many are locked behind paywalls so I decided to just build my own.
 A similar goal could be achieved with a pretty small bash script, but I decided to use Go for the expandability and strong standard library.
-Given my reasoning you might be thinking, "Why not use Python for this?", and that is a fair question. Ultimately, I went with Go over Python for 4 reasons
+Given my reasoning you might be thinking, "Why not use Python for this?", and that is a fair question. Ultimately, I went with Go over Python for 4 reasons:
 
 1. **Performance.**  
 Since Go has built in first-class concurrency support and Go programs compile to a binary, creating this program in Go provides a performane edge over Pyhton.

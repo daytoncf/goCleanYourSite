@@ -34,18 +34,22 @@ func cleanCSSFile(filename string, classSet mapset.Set[string]) {
 	// Iterate over each top level token
 	for _, token := range stylesheet.Tokens {
 		// Check to see if the token's selector uses a class
-		if classes := extractClassesFromSelector(token.Selector); len(classes) > 0 {
+		if classes := extractClassesFromSelector(token.Selector); len(classes) > 0 && token.TokenType == css.RULESET {
 			for _, class := range classes {
 				// If the class is within the class set, add to string
-				if classSet.Contains(class) {
+				// Using [1:] to ignore the '.' at the start of the class name
+				if classSet.Contains(class[1:]) {
 					newFile += token.Serialize() + "\n"
 					break // assuming that if it has the first class, it has all of them. Need a better solution
 				}
 			}
-		} else {
+		} else if token.TokenType == css.RULESET {
 			newFile += token.Serialize() + "\n"
 		}
 	}
+
+	// Iterate over at-rules
+	
 
 	// Get index of last '/' to find the end of the directory prefix
 	dirEnd := strings.LastIndex(filename, "/") + 1

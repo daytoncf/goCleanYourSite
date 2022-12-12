@@ -106,7 +106,7 @@ func (a *AtRule) Serialize() string {
 	var tokens string = ""
 	for _, v := range a.Tokens {
 		if v.TokenType == RULESET {
-			tokens += v.Serialize() + "\n"
+			tokens += v.Serialize()
 		}
 	}
 	return fmt.Sprintf("%s{%s}", a.Selector, tokens)

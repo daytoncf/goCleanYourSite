@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"strings"
 
-	css "github.com/daytoncf/goCleanSS/css"
-	lib "github.com/daytoncf/goCleanSS/pkg/lib"
+	css "github.com/daytoncf/goCleanYourSite/css"
+	lib "github.com/daytoncf/goCleanYourSite/pkg/lib"
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"golang.org/x/net/html"
@@ -49,7 +49,9 @@ func cleanCSSFile(filename string, classSet mapset.Set[string]) {
 	}
 
 	// Iterate over at-rules
-	
+	for _, atRule := range stylesheet.AtRules {
+		newFile += atRule.Serialize() + "\n"
+	}
 
 	// Get index of last '/' to find the end of the directory prefix
 	dirEnd := strings.LastIndex(filename, "/") + 1

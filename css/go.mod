@@ -1,7 +1,7 @@
-module github.com/daytoncf/goCleanSS/css
+module github.com/daytoncf/goCleanYourSite/css
 
 go 1.19
 
-replace github.com/daytoncf/goCleanSS/pkg/lib v0.0.0-unpublished => ../pkg/lib
+replace github.com/daytoncf/goCleanYourSite/pkg/lib v0.0.0-unpublished => ../pkg/lib
 
-require github.com/daytoncf/goCleanSS/pkg/lib v0.0.0-unpublished
+require github.com/daytoncf/goCleanYourSite/pkg/lib v0.0.0-unpublished

@@ -1,3 +1,3 @@
-module github.com/daytoncf/goCleanSS/pkg/lib
+module github.com/daytoncf/goCleanYourSite/pkg/lib
 
 go 1.19

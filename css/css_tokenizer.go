@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	lib "github.com/daytoncf/goCleanSS/pkg/lib"
+	lib "github.com/daytoncf/goCleanYourSite/pkg/lib"
 )
 
 type Declaration struct {
@@ -45,10 +45,10 @@ type Token struct {
 }
 
 func (t *Token) Serialize() string {
-	 
+
 	var rules string = ""
 	for _, declaration := range t.Declarations {
-		rules += fmt.Sprintf("%s:%s;",declaration.Property, declaration.Value)
+		rules += fmt.Sprintf("%s:%s;", declaration.Property, declaration.Value)
 	}
 	return fmt.Sprintf("%s{%s}", t.Selector, rules)
 }
@@ -99,6 +99,17 @@ type AtRule struct {
 	AtRuleType AtRuleType
 	Selector   string
 	Tokens     []Token
+}
+
+// function that converts an atRule into a string to be printed into a file
+func (a *AtRule) Serialize() string {
+	var tokens string = ""
+	for _, v := range a.Tokens {
+		if v.TokenType == RULESET {
+			tokens += v.Serialize() + "\n"
+		}
+	}
+	return fmt.Sprintf("%s{%s}", a.Selector, tokens)
 }
 
 // Collection struct that holds all of that at-rules and tokens

@@ -1,5 +1,5 @@
 # goCleanYourSite
-goCleanYourSite is a simple Go program that will parse through your HTML files, create a set of class names, parse through your css files to find all class names that aren't withing that set, and then create new cleaned css files `new_<filename>.css`
+goCleanYourSite is a simple Go program that will parse through your HTML files, create a set of class names, parse through your css files to find all class names that aren't within that set, and then create new cleaned css files `new_<filename>.css`
 
 # Background
 There are multiple solutions out that do this exact thing, and in some cases more, but many are locked behind paywalls so I decided to just build my own.

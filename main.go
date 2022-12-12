@@ -76,7 +76,7 @@ func cleanAllCSSFiles(path string, classSet mapset.Set[string]) {
 		if strings.HasSuffix(file, ".css") {
 			// Do stuff here
 			fullFilename := path + file
-			cleanCSSFile(fullFilename, classSet)
+			go cleanCSSFile(fullFilename, classSet)
 		}
 	}
 }

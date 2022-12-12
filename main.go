@@ -94,7 +94,6 @@ func extractClassesFromSelector(fullSelector string) []string {
 		}
 		fmt.Println("Pattern found no matches")
 	}
-	fmt.Println("No class selector found")
 	return []string{}
 }
 

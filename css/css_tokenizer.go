@@ -173,6 +173,8 @@ func ParseAtRuleBlock(atRuleBlock string) []Token {
 				comment := strings.TrimSpace(charQueue.PopQueueToString())
 				// Create Token for comment, using its contents for the selector exluding asterisk, [1:len(s)-1]
 				tokens = append(tokens, NewToken(COMMENT, comment, []Declaration{}))
+				// No longer reading comment
+				readingComment = false
 			} else {
 				// Check to see if there is an asterisk following this /
 				readingComment = peekForCommentStart(atRuleBlock, i)
@@ -237,12 +239,15 @@ func Tokenizer(path string) Stylesheet {
 				// Create Token for comment, using its contents for the selector exluding asterisk, [1:len(s)-1]
 				tokens = append(tokens, NewToken(COMMENT, comment, []Declaration{}))
 				readingComment = false
-			} else {
+			} else if !readingComment {
 				// Check to see if there is an asterisk following this /
 				readingComment = peekForCommentStart(fileString, i)
 			}
 		case '{':
-
+			// In case of commented out rulesets
+			if readingComment {
+				continue
+			}
 			if charStack.IsEmpty() {
 				// Pop selector name into `selector`
 				selector = strings.TrimSpace(charQueue.PopQueueToString())
@@ -257,6 +262,10 @@ func Tokenizer(path string) Stylesheet {
 			// Push '{' onto charStack to keep track of nested / @rule blocks
 			charStack.Push(v)
 		case '}':
+			// In case of commented out rulesets
+			if readingComment {
+				continue
+			}
 			// Pop '{' off top of stack
 			charStack.Pop()
 

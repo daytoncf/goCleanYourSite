@@ -17,11 +17,21 @@ import (
 func main() {
 
 	dir := flag.String("directory", "./content/", "Path to html files")
+	flag.Parse()
+	dirString := addSlashToDirectoryFlag(dir)
 
-	classList := GetClassesHTMLFiles(*dir)
+	classList := GetClassesHTMLFiles(dirString)
 	cleanedList := separateAllClassNames(classList)
 	classSet := mapset.NewSet(cleanedList...)
-	cleanAllCSSFiles(*dir, classSet)
+	cleanAllCSSFiles(dirString, classSet)
+}
+
+func addSlashToDirectoryFlag(str *string) string {
+	if strings.HasSuffix(*str, "/") {
+		return *str
+	} else {
+		return *str + "/"
+	}
 }
 
 func cleanCSSFile(filename string, classSet mapset.Set[string]) {
